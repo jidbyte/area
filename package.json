@@ -1,5 +1,5 @@
 {
-  "name": "venside-app",
+  "name": "area-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -32,6 +32,7 @@
     "inngest": "^4.13.0",
     "lucide-react": "^1.27.0",
     "next": "15.5.22",
+    "next-themes": "^0.4.6",
     "posthog-js": "^1.407.3",
     "posthog-node": "^5.46.1",
     "react": "^19.2.8",

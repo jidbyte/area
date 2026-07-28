@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "Venside",
+  name: "AREA",
   description:
-    "Venside — a multi-vendor marketplace platform with a storefront for buyers and an inventory/business dashboard for shops.",
+    "AREA — a multi-vendor marketplace platform with a storefront for buyers and an inventory/business dashboard for shops.",
 } as const;
