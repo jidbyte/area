@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/config/site";
 import { ThemeProvider } from "@/components/theme-provider";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: siteConfig.name,
@@ -14,17 +15,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="antialiased font-sans">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#1567d4",
+        },
+      }}
+    >
+      <html lang="en" suppressHydrationWarning>
+        <body className="antialiased font-sans">
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem={false}
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +14,25 @@ export default function Home() {
     <div className="min-h-screen p-8">
       <header className="mx-auto flex max-w-3xl items-center justify-between pb-10">
         <Logo height={28} />
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Show when="signed-out">
+            <SignInButton mode="modal">
+              <Button variant="outline" size="sm">
+                Sign in
+              </Button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <Button size="sm">Sign up</Button>
+            </SignUpButton>
+          </Show>
+          <Show when="signed-in">
+            <Button asChild size="sm" variant="outline">
+              <Link href="/shops/new">Create a shop</Link>
+            </Button>
+            <UserButton />
+          </Show>
+        </div>
       </header>
 
       <main className="mx-auto flex max-w-3xl flex-col gap-8">
@@ -21,8 +41,14 @@ export default function Home() {
             <CardTitle className="text-2xl">{siteConfig.name}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-muted-foreground text-sm">{siteConfig.description}</p>
-            <Button>Setup complete — dark theme, blue palette, assets wired</Button>
+            <p className="text-muted-foreground text-sm">
+              {siteConfig.description}
+            </p>
+            <Show when="signed-out">
+              <p className="text-muted-foreground text-sm">
+                Sign in to create a shop and manage your inventory.
+              </p>
+            </Show>
           </CardContent>
         </Card>
 
@@ -43,7 +69,9 @@ export default function Home() {
                 </div>
                 <CardContent className="px-3 py-3">
                   <p className="truncate text-sm font-medium">{product.name}</p>
-                  <p className="text-primary text-sm font-semibold">${product.price}</p>
+                  <p className="text-primary text-sm font-semibold">
+                    ${product.price}
+                  </p>
                 </CardContent>
               </Card>
             ))}
