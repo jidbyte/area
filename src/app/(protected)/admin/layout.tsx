@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/admin/purchases", label: "Purchases" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/suppliers", label: "Suppliers" },
+  { href: "/admin/analytics", label: "Analytics" },
 ];
 
 export default async function AdminLayout({

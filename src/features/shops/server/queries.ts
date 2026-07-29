@@ -2,7 +2,7 @@ import { and, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 
 import { db } from "@/shared/db";
-import { shop } from "@/shared/db/schema";
+import { product, shop } from "@/shared/db/schema";
 
 export async function getShopBySlug(slug: string) {
   return db.query.shop.findFirst({
@@ -49,7 +49,8 @@ export async function getShopForCurrentUser() {
   if (!userId) return null;
 
   const client = await clerkClient();
-  const { data: memberships } = await client.users.getOrganizationMembershipList({ userId });
+  const { data: memberships } =
+    await client.users.getOrganizationMembershipList({ userId });
   const orgId = memberships[0]?.organization.id;
   if (!orgId) return null;
 
