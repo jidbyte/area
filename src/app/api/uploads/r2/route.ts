@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   const safeName = fileName.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-  const fileKey = `shops/${shop.id}/products/${crypto.randomUUID()}-${safeName}`;
+  const fileKey = `assets/${shop.id}/products/${crypto.randomUUID()}-${safeName}`;
 
   try {
     const uploadUrl = await createPresignedUploadUrl(fileKey, contentType);
