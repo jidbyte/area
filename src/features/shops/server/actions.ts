@@ -2,37 +2,40 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
-import { db } from "@/db";
-import { shop } from "@/db/schema";
-import { isPlatformAdmin } from "@/features/auth/server/platform-admin";
-import { createShopSchema, type CreateShopInput } from "./schema";
-import { getShopBySlug } from "./queries";
+import { db } from "@/shared/db";
+import { shop } from "@/shared/db/schema";
+import { setupSchema, type SetupInput } from "./schema";
+import { getShopBySlug, getShopForCurrentUser } from "./queries";
 
 export type ActionResult<T = undefined> =
-  { success: true; data: T } | { success: false; error: string };
+  | { success: true; data: T }
+  | { success: false; error: string };
 
-export async function createShop(
-  input: CreateShopInput,
-): Promise<ActionResult<{ slug: string }>> {
+export async function completeSetup(input: SetupInput): Promise<ActionResult<{ slug: string }>> {
   const { userId } = await auth();
   if (!userId) {
-    return { success: false, error: "You must be signed in to create a shop." };
+    return { success: false, error: "You must be signed in." };
   }
 
-  const parsed = createShopSchema.safeParse(input);
-  if (!parsed.success) {
-    return {
-      success: false,
-      error: parsed.error.issues[0]?.message ?? "Invalid input.",
-    };
-  }
-  const { name, slug, description, address, email, contact } = parsed.data;
-
-  const existing = await getShopBySlug(slug);
+  // Application-level "one org per account" rule — Clerk itself doesn't cap
+  // membership at one, so this check is what actually enforces it.
+  const existing = await getShopForCurrentUser();
   if (existing) {
+    return { success: false, error: "You already have a shop set up." };
+  }
+
+  const parsed = setupSchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+  const { name, slug, currency } = parsed.data;
+
+  const slugTaken = await getShopBySlug(slug);
+  if (slugTaken) {
     return { success: false, error: "That name is already taken." };
   }
 
@@ -49,13 +52,10 @@ export async function createShop(
     });
     orgId = org.id;
   } catch (err) {
-    // Log the full error server-side for debugging (never shown to the user).
-    console.error("[createShop] Clerk organization creation failed:", err);
+    console.error("[completeSetup] Clerk organization creation failed:", err);
 
     if (isClerkAPIResponseError(err)) {
       const first = err.errors[0];
-      // Most common cause during setup: Organizations feature is disabled
-      // for this Clerk application (Dashboard → Organizations → Enable).
       if (first?.code === "organizations_not_enabled_in_instance") {
         return {
           success: false,
@@ -63,63 +63,57 @@ export async function createShop(
             "Organizations aren't enabled for this Clerk app yet. Enable them in the Clerk Dashboard under Organizations, then try again.",
         };
       }
-      if (
-        first?.code === "organization_slug_exists" ||
-        first?.code === "duplicate_record"
-      ) {
+      if (first?.code === "organization_slug_exists" || first?.code === "duplicate_record") {
         return { success: false, error: "That name is already taken." };
       }
       return {
         success: false,
-        error:
-          first?.longMessage ??
-          first?.message ??
-          "Could not create the shop. Please try again.",
+        error: first?.longMessage ?? first?.message ?? "Could not set up your shop. Please try again.",
       };
     }
 
-    return {
-      success: false,
-      error: "Could not create the shop. Please try again.",
-    };
+    return { success: false, error: "Could not set up your shop. Please try again." };
   }
 
-  await db.insert(shop).values({
-    clerkOrgId: orgId,
-    name,
-    slug,
-    description: description || null,
-    address: address || null,
-    email: email || null,
-    contact: contact || null,
-    status: "pending",
-    isActive: false,
-  });
+  try {
+    await db.insert(shop).values({
+      clerkOrgId: orgId,
+      name,
+      slug,
+      currency,
+      isActive: true,
+    });
+  } catch (err) {
+    // DB insert failed after the Clerk org was already created — clean up
+    // the orphaned org rather than leaving a dangling, invisible one.
+    console.error("[completeSetup] shop insert failed, rolling back Clerk org:", err);
+    await client.organizations.deleteOrganization(orgId).catch(() => {});
+    return { success: false, error: "Could not set up your shop. Please try again." };
+  }
 
-  revalidatePath("/admin/shops");
+  revalidatePath("/admin");
   return { success: true, data: { slug } };
 }
 
-export async function approveShop(shopId: string): Promise<ActionResult> {
-  if (!(await isPlatformAdmin())) {
-    return { success: false, error: "Not authorized." };
+export async function deleteShop(): Promise<ActionResult> {
+  const currentShop = await getShopForCurrentUser();
+  if (!currentShop) {
+    return { success: false, error: "You don't have a shop to delete." };
   }
-  await db
-    .update(shop)
-    .set({ status: "approved", isActive: true })
-    .where(eq(shop.id, shopId));
-  revalidatePath("/admin/shops");
-  return { success: true, data: undefined };
-}
 
-export async function suspendShop(shopId: string): Promise<ActionResult> {
-  if (!(await isPlatformAdmin())) {
-    return { success: false, error: "Not authorized." };
-  }
+  const client = await clerkClient();
+  await client.organizations.deleteOrganization(currentShop.clerkOrgId).catch((err) => {
+    // Even if Clerk-side deletion fails (e.g. already gone), still soft-delete
+    // our row so the owner isn't stuck — this is a deliberate, rare exception
+    // to "never hide errors": losing the org record is worse than a stray
+    // orphaned Clerk org, which can be cleaned up manually.
+    console.error("[deleteShop] Clerk organization deletion failed:", err);
+  });
+
   await db
     .update(shop)
-    .set({ status: "suspended", isActive: false })
-    .where(eq(shop.id, shopId));
-  revalidatePath("/admin/shops");
-  return { success: true, data: undefined };
+    .set({ deletedAt: new Date(), isActive: false })
+    .where(eq(shop.id, currentShop.id));
+
+  redirect("/");
 }

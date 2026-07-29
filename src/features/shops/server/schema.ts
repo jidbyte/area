@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { isReservedSlug } from "@/config/reserved-slugs";
+import { isReservedSlug } from "@/shared/config/reserved-slugs";
+import { CURRENCIES } from "@/shared/config/currencies";
 
 export const shopSlugSchema = z
   .string()
@@ -11,13 +12,16 @@ export const shopSlugSchema = z
     message: "That name is reserved — please choose another",
   });
 
-export const createShopSchema = z.object({
+const currencyCodes = CURRENCIES.map((c) => c.code) as [string, ...string[]];
+
+// The entire first-run setup form: organization name, its public URL slug,
+// and the currency its buyers will see. Everything else (description,
+// address, contact info, logo) is a later "shop settings" concern, not part
+// of getting a new shop off the ground.
+export const setupSchema = z.object({
   name: z.string().min(2, "Required").max(80),
   slug: shopSlugSchema,
-  description: z.string().max(500).optional().or(z.literal("")),
-  address: z.string().max(200).optional().or(z.literal("")),
-  email: z.string().email("Enter a valid email").optional().or(z.literal("")),
-  contact: z.string().max(40).optional().or(z.literal("")),
+  currency: z.enum(currencyCodes, { message: "Choose a currency" }),
 });
 
-export type CreateShopInput = z.infer<typeof createShopSchema>;
+export type SetupInput = z.infer<typeof setupSchema>;
