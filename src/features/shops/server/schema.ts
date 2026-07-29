@@ -24,4 +24,17 @@ export const setupSchema = z.object({
   currency: z.enum(currencyCodes, { message: "Choose a currency" }),
 });
 
+export const shopSettingsSchema = z.object({
+  name: z.string().min(2, "Required").max(80, "Keep it under 80 characters"),
+  description: z.string().max(1000).optional().or(z.literal("")),
+  address: z.string().max(200).optional().or(z.literal("")),
+  email: z
+    .email({ message: "Enter a valid email" })
+    .optional()
+    .or(z.literal("")),
+  phone: z.string().max(40).optional().or(z.literal("")),
+});
+
+export type ShopSettingsInput = z.infer<typeof shopSettingsSchema>;
+
 export type SetupInput = z.infer<typeof setupSchema>;

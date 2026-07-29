@@ -29,10 +29,8 @@ export const shop = pgTable(
     address: text("address"),
     logo: text("logo"),
     email: text("email"),
-    contact: text("contact"),
+    phone: text("phone"),
     // ISO 4217 code (e.g. "GHS", "NGN", "USD") — see shared/config/currencies.ts
-    // for the curated, Paystack-supported list. Symbol shown to this shop's
-    // buyers is derived from this code, never stored redundantly.
     currency: text("currency").notNull().default("USD"),
     isActive: boolean("is_active").notNull().default(true),
     deletedAt: timestamp("deleted_at"),

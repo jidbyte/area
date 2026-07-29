@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Settings } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
+import { Button } from "@/shared/components/ui/button";
 import { getShopForCurrentUser } from "@/features/shops/server/queries";
 
 const NAV_ITEMS = [
@@ -13,7 +15,11 @@ const NAV_ITEMS = [
   { href: "/admin/suppliers", label: "Suppliers" },
 ];
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   // (protected)/layout.tsx already guarantees a signed-in user here.
   const shop = await getShopForCurrentUser();
   if (!shop) redirect("/setup");
@@ -25,7 +31,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           {/* The org's own name stands in for the platform logo here — once
               you're inside a shop's dashboard, that's the identity that matters. */}
           <span className="truncate text-lg font-semibold">{shop.name}</span>
-          <UserButton />
+          <div className="flex items-center gap-2">
+            <Button asChild variant="ghost" size="icon" aria-label="Settings">
+              <Link href="/admin/settings">
+                <Settings className="size-4" />
+              </Link>
+            </Button>
+            <UserButton />
+          </div>
         </div>
         <nav className="mx-auto flex max-w-6xl flex-wrap gap-x-4 gap-y-2 px-4 pb-3 text-sm sm:px-8">
           {NAV_ITEMS.map((item) => (

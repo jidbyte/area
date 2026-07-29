@@ -8,8 +8,13 @@ import { isClerkAPIResponseError } from "@clerk/nextjs/errors";
 
 import { db } from "@/shared/db";
 import { shop } from "@/shared/db/schema";
-import { setupSchema, type SetupInput } from "./schema";
 import { getShopBySlug, getShopForCurrentUser } from "./queries";
+import {
+  setupSchema,
+  shopSettingsSchema,
+  type SetupInput,
+  type ShopSettingsInput,
+} from "./schema";
 
 export type ActionResult<T = undefined> =
   | { success: true; data: T }
@@ -93,6 +98,64 @@ export async function completeSetup(input: SetupInput): Promise<ActionResult<{ s
 
   revalidatePath("/admin");
   return { success: true, data: { slug } };
+}
+
+export async function updateShopSettings(
+  input: ShopSettingsInput,
+): Promise<ActionResult> {
+  const currentShop = await getShopForCurrentUser();
+  if (!currentShop) {
+    return { success: false, error: "You must have a shop set up first." };
+  }
+
+  const parsed = shopSettingsSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
+  const { name, description, address, email, phone } = parsed.data;
+
+  // Keep the Clerk organization's name in sync — it's the same "name" shown
+  // in Clerk's own dashboard/UI components, not just our display copy.
+  if (name !== currentShop.name) {
+    const client = await clerkClient();
+    try {
+      await client.organizations.updateOrganization(currentShop.clerkOrgId, {
+        name,
+      });
+    } catch (err) {
+      console.error("[updateShopSettings] Clerk org name update failed:", err);
+      if (isClerkAPIResponseError(err)) {
+        const first = err.errors[0];
+        return {
+          success: false,
+          error:
+            first?.longMessage ??
+            first?.message ??
+            "Could not update the shop name.",
+        };
+      }
+      return { success: false, error: "Could not update the shop name." };
+    }
+  }
+
+  await db
+    .update(shop)
+    .set({
+      name,
+      description: description || null,
+      address: address || null,
+      email: email || null,
+      phone: phone || null,
+    })
+    .where(eq(shop.id, currentShop.id));
+
+  revalidatePath("/admin/settings");
+  revalidatePath("/admin");
+  revalidatePath(`/${currentShop.slug}`);
+  return { success: true, data: undefined };
 }
 
 export async function deleteShop(): Promise<ActionResult> {
