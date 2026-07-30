@@ -4,8 +4,6 @@ import { pgTable, text, timestamp, index } from "drizzle-orm/pg-core";
 import { shop, timestamps } from "./shop";
 import { sale } from "./sales";
 
-// Adapted from the Svelte project's `customer` table — userId -> shopId,
-// otherwise the same shape (name/email/phone/address/customerType).
 export const customer = pgTable(
   "customer",
   {
@@ -15,6 +13,7 @@ export const customer = pgTable(
     shopId: text("shop_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
+    buyerClerkUserId: text("buyer_clerk_user_id"),
     name: text("name").notNull(),
     email: text("email"),
     phone: text("phone"),
@@ -29,6 +28,7 @@ export const customer = pgTable(
     index("customer_shopId_idx").on(table.shopId),
     index("customer_name_idx").on(table.name),
     index("customer_email_idx").on(table.email),
+    index("customer_buyerClerkUserId_idx").on(table.buyerClerkUserId),
   ],
 );
 

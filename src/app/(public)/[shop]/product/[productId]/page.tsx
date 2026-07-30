@@ -7,6 +7,7 @@ import { getShopBySlug } from "@/features/shops/server/queries";
 import { getActiveProductById } from "@/features/inventory/server/queries";
 import { ShopHeader } from "@/features/shops/client/shop-header";
 import { formatPrice } from "@/shared/utils/currency";
+import { AddToCartButton } from "@/features/cart/client/add-to-cart-button";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +30,13 @@ export default async function ProductDetailPage({
 
   return (
     <div>
-      <ShopHeader slug={slug} name={shop.name} />
+      <ShopHeader shopId={shop.id} slug={slug} name={shop.name} />
 
       <div className="mx-auto max-w-5xl p-8">
-        <Link href={`/${slug}`} className="text-muted-foreground text-sm hover:underline">
+        <Link
+          href={`/${slug}`}
+          className="text-muted-foreground text-sm hover:underline"
+        >
           ← Back to {shop.name}
         </Link>
 
@@ -54,7 +58,13 @@ export default async function ProductDetailPage({
                     key={img.fileKey}
                     className="bg-secondary relative aspect-square overflow-hidden rounded-md"
                   >
-                    <Image src={img.url} alt="" fill unoptimized className="object-contain p-2" />
+                    <Image
+                      src={img.url}
+                      alt=""
+                      fill
+                      unoptimized
+                      className="object-contain p-2"
+                    />
                   </div>
                 ))}
               </div>
@@ -75,9 +85,21 @@ export default async function ProductDetailPage({
               {formatPrice(product.price, shop.currency)}
             </p>
 
-            <p className={outOfStock ? "text-destructive text-sm font-medium" : "text-sm"}>
+            <p
+              className={
+                outOfStock ? "text-destructive text-sm font-medium" : "text-sm"
+              }
+            >
               {outOfStock ? "Out of stock" : "In stock"}
             </p>
+
+            <AddToCartButton
+              shopId={shop.id}
+              shopSlug={slug}
+              productId={product.id}
+              maxQuantity={product.quantity}
+              showQuantitySelector
+            />
 
             {categories.length > 0 && (
               <div className="flex flex-wrap gap-2">

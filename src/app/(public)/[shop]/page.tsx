@@ -42,10 +42,18 @@ export default async function ShopStorefrontPage({
 
   return (
     <div>
-      <ShopHeader slug={slug} name={shop.name} showSearch initialQuery={q ?? ""} />
+      <ShopHeader
+        shopId={shop.id}
+        slug={slug}
+        name={shop.name}
+        showSearch
+        initialQuery={q ?? ""}
+      />
 
       <div className="mx-auto max-w-5xl p-8">
-        {shop.description && <p className="text-muted-foreground mb-6">{shop.description}</p>}
+        {shop.description && (
+          <p className="text-muted-foreground mb-6">{shop.description}</p>
+        )}
 
         {categories.length > 0 && (
           <div className="mb-6 flex flex-wrap gap-2">
@@ -72,6 +80,7 @@ export default async function ShopStorefrontPage({
             {rows.map((product) => (
               <ProductCard
                 key={product.id}
+                shopId={shop.id}
                 shopSlug={slug}
                 currency={shop.currency}
                 product={product}

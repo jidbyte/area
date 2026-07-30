@@ -4,6 +4,7 @@ import Link from "next/link";
 import { placeholderAssets } from "@/assets/placeholder";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { formatPrice } from "@/shared/utils/currency";
+import { AddToCartButton } from "@/features/cart/client/add-to-cart-button";
 
 export type StorefrontProduct = {
   id: string;
@@ -14,10 +15,12 @@ export type StorefrontProduct = {
 };
 
 export function ProductCard({
+  shopId,
   shopSlug,
   currency,
   product,
 }: {
+  shopId: string;
   shopSlug: string;
   currency: string;
   product: StorefrontProduct;
@@ -25,8 +28,8 @@ export function ProductCard({
   const outOfStock = product.quantity <= 0;
 
   return (
-    <Link href={`/${shopSlug}/product/${product.id}`}>
-      <Card className="overflow-hidden py-0 transition-colors hover:border-primary">
+    <Card className="overflow-hidden py-0 transition-colors hover:border-primary">
+      <Link href={`/${shopSlug}/product/${product.id}`}>
         <div className="bg-secondary relative aspect-square">
           <Image
             src={product.primaryImageUrl || placeholderAssets.noImage}
@@ -41,13 +44,21 @@ export function ProductCard({
             </span>
           )}
         </div>
-        <CardContent className="px-4 py-3">
+        <CardContent className="px-4 pt-3 pb-2">
           <p className="truncate text-sm font-medium">{product.name}</p>
           <p className="text-primary text-sm font-semibold">
             {formatPrice(product.price, currency)}
           </p>
         </CardContent>
-      </Card>
-    </Link>
+      </Link>
+      <CardContent className="px-4 pb-4">
+        <AddToCartButton
+          shopId={shopId}
+          shopSlug={shopSlug}
+          productId={product.id}
+          maxQuantity={product.quantity}
+        />
+      </CardContent>
+    </Card>
   );
 }

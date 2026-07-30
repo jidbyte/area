@@ -40,17 +40,13 @@ function computeTotal(
 /**
  * The actual "make a sale happen" logic: writes the sale + items, decrements
  * stock for every line item tied to a real product, and logs each deduction
- * to inventory_log. No auth check here on purpose.
- *
- * This is the integration point for the Cart & Checkout phase: once a buyer
- * completes a Paystack payment, that flow should call this directly — not
- * `createSale`, which gates on shop staff membership, and a buyer isn't
- * staff. At that point `actorClerkUserId` will need a guest-safe value,
- * since inventory_log.actorClerkUserId is currently NOT NULL and a guest
- * checkout has no Clerk user — worth revisiting then (either make that
- * column nullable or use a sentinel like "storefront-checkout").
+ * to inventory_log. No auth check here on purpose — Checkout calls this
+ * directly (not `createSale`, which gates on shop staff membership, since a
+ * buyer isn't staff). `actorClerkUserId` accepts the buyer's real Clerk id
+ * when they're signed in, or a sentinel like "storefront-checkout" for
+ * guests — inventory_log.actorClerkUserId stays NOT NULL either way.
  */
-async function recordSale(
+export async function recordSale(
   shopId: string,
   input: CreateSaleInput,
   actorClerkUserId: string,

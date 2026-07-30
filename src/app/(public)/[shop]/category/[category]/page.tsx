@@ -30,22 +30,28 @@ export default async function ShopCategoryPage({
 
   return (
     <div>
-      <ShopHeader slug={slug} name={shop.name} />
+      <ShopHeader shopId={shop.id} slug={slug} name={shop.name} />
 
       <div className="mx-auto max-w-5xl p-8">
-        <Link href={`/${slug}`} className="text-muted-foreground text-sm hover:underline">
+        <Link
+          href={`/${slug}`}
+          className="text-muted-foreground text-sm hover:underline"
+        >
           ← Back to {shop.name}
         </Link>
 
         <h1 className="mt-4 mb-6 text-2xl font-semibold">{categoryName}</h1>
 
         {rows.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No products in this category right now.</p>
+          <p className="text-muted-foreground text-sm">
+            No products in this category right now.
+          </p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {rows.map((product) => (
               <ProductCard
                 key={product.id}
+                shopId={shop.id}
                 shopSlug={slug}
                 currency={shop.currency}
                 product={product}
