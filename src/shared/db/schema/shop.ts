@@ -34,8 +34,7 @@ export const shop = pgTable(
     currency: text("currency").notNull().default("USD"),
     isActive: boolean("is_active").notNull().default(true),
     deletedAt: timestamp("deleted_at"),
-    // Multi-vendor payment-split additions (Payments phase)
-    commissionRate: integer("commission_rate").notNull().default(0), // basis points
+    commissionRate: integer("commission_rate").notNull().default(250), // basis points; 250 = 2.5%
     paystackSubaccountCode: text("paystack_subaccount_code"),
     ...timestamps,
   },

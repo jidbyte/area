@@ -10,11 +10,15 @@ import { db } from "@/shared/db";
 import { shop } from "@/shared/db/schema";
 import { getShopBySlug, getShopForCurrentUser } from "./queries";
 import {
+  PaystackSetupInput,
+  paystackSetupSchema,
   setupSchema,
   shopSettingsSchema,
   type SetupInput,
   type ShopSettingsInput,
 } from "./schema";
+import { PLATFORM_COMMISSION_BPS } from "@/shared/config/paystack";
+import { updateSubaccount, createSubaccount } from "@/shared/lib/paystack";
 
 export type ActionResult<T = undefined> =
   | { success: true; data: T }
@@ -156,6 +160,57 @@ export async function updateShopSettings(
   revalidatePath("/admin");
   revalidatePath(`/${currentShop.slug}`);
   return { success: true, data: undefined };
+}
+
+export async function setupPaystackSubaccount(
+  input: PaystackSetupInput,
+): Promise<ActionResult<{ subaccountCode: string }>> {
+  const currentShop = await getShopForCurrentUser();
+  if (!currentShop) {
+    return { success: false, error: "You must have a shop set up first." };
+  }
+
+  const parsed = paystackSetupSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      success: false,
+      error: parsed.error.issues[0]?.message ?? "Invalid input.",
+    };
+  }
+  const { bankCode, accountNumber } = parsed.data;
+
+  const params = {
+    businessName: currentShop.name,
+    bankCode,
+    accountNumber,
+    percentageCharge: PLATFORM_COMMISSION_BPS / 100,
+  };
+
+  const result = currentShop.paystackSubaccountCode
+    ? await updateSubaccount(currentShop.paystackSubaccountCode, params)
+    : await createSubaccount(params);
+
+  if (!result.ok) {
+    return { success: false, error: result.error };
+  }
+
+  await db
+    .update(shop)
+    .set({
+      paystackSubaccountCode: result.data.subaccount_code,
+      // Backfills existing shops created before the 2.5% commission was
+      // decided — new shops don't need this since the schema default
+      // already matches, but this keeps the two paths converging on the
+      // same value either way.
+      commissionRate: PLATFORM_COMMISSION_BPS,
+    })
+    .where(eq(shop.id, currentShop.id));
+
+  revalidatePath("/admin/settings");
+  return {
+    success: true,
+    data: { subaccountCode: result.data.subaccount_code },
+  };
 }
 
 export async function deleteShop(): Promise<ActionResult> {

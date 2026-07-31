@@ -56,3 +56,18 @@ export async function getShopForCurrentUser() {
 
   return getShopByOrgId(orgId);
 }
+
+export async function listProductOptionsByShop(shopId: string) {
+  return db.query.product.findMany({
+    where: and(eq(product.shopId, shopId), isNull(product.deletedAt)),
+    orderBy: [desc(product.createdAt)],
+    columns: {
+      id: true,
+      name: true,
+      sku: true,
+      code: true,
+      cost: true,
+      price: true,
+    },
+  });
+}

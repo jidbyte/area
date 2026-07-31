@@ -4,8 +4,10 @@ import { getShopBySlug } from "@/features/shops/server/queries";
 import { resolveBuyerIdentity } from "@/features/cart/server/identity";
 import { getCartWithItems } from "@/features/cart/server/queries";
 import { ShopHeader } from "@/features/shops/client/shop-header";
-import { CheckoutForm, CheckoutLineItem } from "@/features/cart/client/checkout-form";
-
+import {
+  CheckoutLineItem,
+  CheckoutForm,
+} from "@/features/checkout/client/checkout-form";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,23 @@ export default async function CheckoutPage({
   return (
     <div>
       <ShopHeader shopId={shop.id} slug={slug} name={shop.name} />
+      {/* <div className="mx-auto max-w-3xl p-8">
+        <h1 className="mb-6 text-2xl font-semibold">Checkout</h1>
+        {!shop.paystackSubaccountCode ? (
+          <p className="text-muted-foreground text-sm">
+            This shop hasn&apos;t finished setting up payments yet — check back
+            soon.
+          </p>
+        ) : (
+          <CheckoutForm
+            shopId={shop.id}
+            currency={shop.currency}
+            items={items}
+            subtotal={subtotal}
+          />
+        )}
+      </div> */}
+
       <div className="mx-auto max-w-3xl p-8">
         <h1 className="mb-6 text-2xl font-semibold">Checkout</h1>
         <CheckoutForm
@@ -44,6 +63,7 @@ export default async function CheckoutPage({
           currency={shop.currency}
           items={items}
           subtotal={subtotal}
+          canPayOnline={!!shop.paystackSubaccountCode}
         />
       </div>
     </div>

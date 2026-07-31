@@ -11,8 +11,11 @@ import { formatPrice } from "@/shared/utils/currency";
 import {
   checkoutSchema,
   type CheckoutInput,
-} from "@/features/cart/server/schema";
-import { placeOrder } from "../server/actions";
+} from "@/features/checkout/server/schema";
+import {
+  initiateCheckout,
+  placeOrderPayOnDelivery,
+} from "@/features/checkout/server/actions";
 
 export type CheckoutLineItem = {
   id: string;
@@ -27,15 +30,20 @@ export function CheckoutForm({
   currency,
   items,
   subtotal,
+  canPayOnline,
 }: {
   shopId: string;
   shopSlug: string;
   currency: string;
   items: CheckoutLineItem[];
   subtotal: number;
+  canPayOnline: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<
+    "pay-now" | "pay-on-delivery" | null
+  >(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -47,10 +55,26 @@ export function CheckoutForm({
     defaultValues: { name: "", email: "", phone: "", address: "" },
   });
 
-  const onSubmit = (values: CheckoutInput) => {
+  const onPayNow = (values: CheckoutInput) => {
     setServerError(null);
+    setPendingAction("pay-now");
     startTransition(async () => {
-      const result = await placeOrder(shopId, values);
+      const result = await initiateCheckout(shopId, values);
+      if (!result.success) {
+        setServerError(result.error);
+        return;
+      }
+      // Full-page redirect to Paystack's hosted checkout — not a Next.js
+      // route, so this is a real navigation, not router.push().
+      window.location.href = result.data.authorizationUrl;
+    });
+  };
+
+  const onPayOnDelivery = (values: CheckoutInput) => {
+    setServerError(null);
+    setPendingAction("pay-on-delivery");
+    startTransition(async () => {
+      const result = await placeOrderPayOnDelivery(shopId, values);
       if (!result.success) {
         setServerError(result.error);
         return;
@@ -61,7 +85,7 @@ export function CheckoutForm({
 
   return (
     <div className="grid gap-8 md:grid-cols-2">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form className="space-y-4">
         <div className="space-y-1.5">
           <label htmlFor="name" className="text-sm font-medium">
             Full name
@@ -109,9 +133,40 @@ export function CheckoutForm({
           <p className="text-destructive text-sm">{serverError}</p>
         )}
 
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "Placing order..." : "Place order"}
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            onClick={handleSubmit(onPayNow)}
+            disabled={isPending || !canPayOnline}
+            className="flex-1"
+            title={
+              !canPayOnline
+                ? "This shop hasn't set up online payments yet"
+                : undefined
+            }
+          >
+            {isPending && pendingAction === "pay-now"
+              ? "Redirecting..."
+              : "Pay now"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSubmit(onPayOnDelivery)}
+            disabled={isPending}
+            className="flex-1"
+          >
+            {isPending && pendingAction === "pay-on-delivery"
+              ? "Placing order..."
+              : "Pay on delivery"}
+          </Button>
+        </div>
+        {!canPayOnline && (
+          <p className="text-muted-foreground text-xs">
+            Online payment isn&apos;t set up for this shop yet — choose Pay on
+            delivery to continue.
+          </p>
+        )}
       </form>
 
       <div className="h-fit space-y-2 rounded-md border p-4">
@@ -128,9 +183,6 @@ export function CheckoutForm({
           <span>Total</span>
           <span>{formatPrice(subtotal, currency)}</span>
         </div>
-        <p className="text-muted-foreground text-xs">
-          Payment is collected offline for now — online payment is coming soon.
-        </p>
       </div>
     </div>
   );

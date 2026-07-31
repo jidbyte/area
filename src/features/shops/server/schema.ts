@@ -35,6 +35,12 @@ export const shopSettingsSchema = z.object({
   phone: z.string().max(40).optional().or(z.literal("")),
 });
 
-export type ShopSettingsInput = z.infer<typeof shopSettingsSchema>;
+export const paystackSetupSchema = z.object({
+  bankCode: z.string().min(1, "Choose a bank"),
+  accountNumber: z.string().min(4, "Required").max(20),
+});
 
+
+export type ShopSettingsInput = z.infer<typeof shopSettingsSchema>;
 export type SetupInput = z.infer<typeof setupSchema>;
+export type PaystackSetupInput = z.infer<typeof paystackSetupSchema>;

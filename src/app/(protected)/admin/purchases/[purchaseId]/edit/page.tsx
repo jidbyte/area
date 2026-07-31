@@ -1,7 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 
-import { getShopForCurrentUser } from "@/features/shops/server/queries";
-import { getPurchaseById, listProductOptionsByShop } from "@/features/purchases/server/queries";
+import {
+  getShopForCurrentUser,
+  listProductOptionsByShop,
+} from "@/features/shops/server/queries";
+import { getPurchaseById } from "@/features/purchases/server/queries";
 import { listSuppliersByShop } from "@/features/suppliers/server/queries";
 import { PurchaseForm } from "@/features/purchases/client/purchase-form";
 

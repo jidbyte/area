@@ -50,14 +50,22 @@ export async function recordSale(
   shopId: string,
   input: CreateSaleInput,
   actorClerkUserId: string,
+  paystackReference?: string,
 ): Promise<ActionResult<{ id: string }>> {
   const parsed = createSaleSchema.safeParse(input);
   if (!parsed.success) {
+    console.error(
+      "[recordSale] validation failed:",
+      parsed.error.issues,
+      "input was:",
+      input,
+    );
     return {
       success: false,
       error: parsed.error.issues[0]?.message ?? "Invalid input.",
     };
   }
+
   const {
     customerId,
     customerName,
@@ -94,6 +102,7 @@ export async function recordSale(
       customerId: customerId || null,
       customerName,
       saleDate: new Date(saleDate),
+      paystackReference: paystackReference ?? null,
       paymentStatus,
       balance: paymentStatus === "paid" ? 0 : balance,
       discountAmount,

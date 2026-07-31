@@ -32,6 +32,7 @@ export const sale = pgTable(
     }),
     customerName: text("customer_name").notNull(),
     saleDate: timestamp("sale_date").notNull(),
+    paystackReference: text("paystack_reference").unique(),
     totalAmount: integer("total_amount").notNull().default(0),
     balance: integer("balance").notNull().default(0),
     paymentStatus: text("payment_status", {

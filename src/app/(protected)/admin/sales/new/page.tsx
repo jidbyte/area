@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
 
-import { getShopForCurrentUser } from "@/features/shops/server/queries";
+import {
+  getShopForCurrentUser,
+  listProductOptionsByShop,
+} from "@/features/shops/server/queries";
 import { listCustomersByShop } from "@/features/customers/server/queries";
 import { SaleForm } from "@/features/sales/client/sale-form";
-import { listProductOptionsByShop } from "@/features/purchases/server/queries";
 
 export default async function NewSalePage() {
   const shop = await getShopForCurrentUser();

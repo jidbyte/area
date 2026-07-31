@@ -16,3 +16,9 @@ export async function getSaleById(saleId: string) {
     with: { items: true, customer: true },
   });
 }
+
+export async function getSaleByPaystackReference(reference: string) {
+  return db.query.sale.findFirst({
+    where: eq(sale.paystackReference, reference),
+  });
+}
