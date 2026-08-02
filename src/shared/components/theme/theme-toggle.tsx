@@ -21,12 +21,13 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="icon"
+      className="transition-colors"
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
-      {resolvedTheme === "dark" ? <Sun /> : <Moon />}
+      {resolvedTheme === "dark" ? <Sun className="text-amber-300" /> : <Moon className="text-sky-600" />}
     </Button>
   );
 }

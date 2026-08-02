@@ -1,13 +1,27 @@
-import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
+import { auth } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import { placeholderAssets } from "@/assets/placeholder";
 import { getShopBySlug } from "@/features/shops/server/queries";
 import { getActiveProductById } from "@/features/inventory/server/queries";
 import { ShopHeader } from "@/features/shops/client/shop-header";
 import { formatPrice } from "@/shared/utils/currency";
 import { AddToCartButton } from "@/features/cart/client/add-to-cart-button";
+import {
+  RatingSummary,
+  ReviewListItem,
+  ReviewsList,
+} from "@/features/reviews/client/reviews-list";
+import {
+  getReviewSummaryForProduct,
+  getReviewsForProduct,
+  getReviewByBuyerForProduct,
+  getEligibleSaleItemForReview,
+} from "@/features/reviews/server/queries";
+import { isMemberOfShopOrg } from "@/features/shops/server/membership";
+import { ReviewForm } from "@/features/reviews/client/review-form";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +41,32 @@ export default async function ProductDetailPage({
   const primary = images?.find((i) => i.isPrimary) ?? images?.[0];
   const outOfStock = product.quantity <= 0;
   const categories = product.productCategories.map((pc) => pc.category.name);
+
+  const { userId } = await auth();
+  const [reviewSummary, reviews, myReview, isStaff] = await Promise.all([
+    getReviewSummaryForProduct(product.id),
+    getReviewsForProduct(product.id),
+    userId
+      ? getReviewByBuyerForProduct(product.id, userId)
+      : Promise.resolve(null),
+    userId
+      ? isMemberOfShopOrg(userId, shop.clerkOrgId)
+      : Promise.resolve(false),
+  ]);
+  const isEligibleForNewReview =
+    !myReview && userId
+      ? await getEligibleSaleItemForReview(shop.id, product.id, userId)
+      : null;
+
+  const reviewListItems: ReviewListItem[] = reviews.map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    title: r.title,
+    body: r.body,
+    buyerName: r.buyerName,
+    createdAt: r.createdAt,
+    canDelete: r.buyerClerkUserId === userId || isStaff,
+  }));
 
   return (
     <div>
@@ -85,6 +125,11 @@ export default async function ProductDetailPage({
               {formatPrice(product.price, shop.currency)}
             </p>
 
+            <RatingSummary
+              averageRating={reviewSummary.averageRating}
+              reviewCount={reviewSummary.reviewCount}
+            />
+
             <p
               className={
                 outOfStock ? "text-destructive text-sm font-medium" : "text-sm"
@@ -121,6 +166,47 @@ export default async function ProductDetailPage({
               </p>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-12 space-y-6 border-t pt-8">
+        <h2 className="text-lg font-semibold">Reviews</h2>
+        <ReviewsList reviews={reviewListItems} />
+
+        <div className="border-t pt-6">
+          {!userId ? (
+            <p className="text-muted-foreground text-sm">
+              <Link
+                href={`/sign-in?redirect_url=/${slug}/product/${product.id}`}
+                className="text-primary hover:underline"
+              >
+                Sign in
+              </Link>{" "}
+              to write a review.
+            </p>
+          ) : myReview ? (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Edit your review</h3>
+              <ReviewForm
+                shopId={shop.id}
+                productId={product.id}
+                defaultValues={{
+                  rating: myReview.rating,
+                  title: myReview.title ?? "",
+                  body: myReview.body,
+                }}
+              />
+            </div>
+          ) : isEligibleForNewReview ? (
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium">Write a review</h3>
+              <ReviewForm shopId={shop.id} productId={product.id} />
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Purchase this product to leave a review.
+            </p>
+          )}
         </div>
       </div>
     </div>

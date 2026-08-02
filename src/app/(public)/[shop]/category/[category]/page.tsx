@@ -5,6 +5,7 @@ import { getShopBySlug } from "@/features/shops/server/queries";
 import { listActiveProductsByShopAndCategory } from "@/features/inventory/server/queries";
 import { ProductCard, type StorefrontProduct } from "@/features/inventory/client/product-card";
 import { ShopHeader } from "@/features/shops/client/shop-header";
+import { getReviewSummariesForProducts } from "@/features/reviews/server/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,9 @@ export default async function ShopCategoryPage({
     quantity: p.quantity,
     primaryImageUrl: p.images.find((i) => i.isPrimary)?.url ?? p.images[0]?.url ?? null,
   }));
+
+    const ratings = await getReviewSummariesForProducts(rows.map((p) => p.id));
+
 
   return (
     <div>
@@ -55,6 +59,7 @@ export default async function ShopCategoryPage({
                 shopSlug={slug}
                 currency={shop.currency}
                 product={product}
+                rating={ratings.get(product.id)}
               />
             ))}
           </div>

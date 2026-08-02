@@ -66,6 +66,7 @@ export function AddToCartButton({
           />
         )}
         <Button
+          variant="secondary"
           size="sm"
           onClick={handleAdd}
           disabled={isPending}

@@ -11,6 +11,7 @@ import {
 
 import { timestamps } from "./shop";
 import { shop } from "./shop";
+import { review } from "./reviews";
 
 // Carried over from the Svelte project's inventory schema, re-pointed from
 // userId → shopId so each shop manages its own catalog.
@@ -126,6 +127,7 @@ export const productRelations = relations(product, ({ many, one }) => ({
   images: many(image),
   productCategories: many(productCategory),
   inventoryLogs: many(inventoryLog),
+  reviews: many(review),
   shop: one(shop, { fields: [product.shopId], references: [shop.id] }),
 }));
 

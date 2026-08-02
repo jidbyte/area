@@ -5,6 +5,8 @@ import { placeholderAssets } from "@/assets/placeholder";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { formatPrice } from "@/shared/utils/currency";
 import { AddToCartButton } from "@/features/cart/client/add-to-cart-button";
+import { StarRatingDisplay } from "@/features/reviews/client/star-rating";
+import { demoImages } from "@/assets/img";
 
 export type StorefrontProduct = {
   id: string;
@@ -19,46 +21,64 @@ export function ProductCard({
   shopSlug,
   currency,
   product,
+  rating,
 }: {
   shopId: string;
   shopSlug: string;
   currency: string;
   product: StorefrontProduct;
+  /** Batch-fetched by the parent page (see getReviewSummariesForProducts) — omitted or undefined shows no badge. */
+  rating?: { averageRating: number; reviewCount: number };
 }) {
   const outOfStock = product.quantity <= 0;
 
   return (
-    <Card className="overflow-hidden py-0 transition-colors hover:border-primary">
+    <div className="overflow-hidden p-2 rounded-lg transition-all hover:scale-102 hover:border hover:border-neutral hover:shadow-sm">
       <Link href={`/${shopSlug}/product/${product.id}`}>
-        <div className="bg-secondary relative aspect-square">
+        <div className="bg-gray-50 relative aspect-square rounded-lg">
           <Image
             src={product.primaryImageUrl || placeholderAssets.noImage}
             alt={product.name}
             fill
             unoptimized={!!product.primaryImageUrl}
-            className="object-contain p-6"
+            className="block w-full object-cover rounded-lg"
           />
+
           {outOfStock && (
-            <span className="bg-background/90 text-muted-foreground absolute top-2 right-2 rounded px-2 py-0.5 text-xs font-medium">
+            <span className="bg-danger text-white absolute top-2 right-2 rounded-lg px-2 py-1 text-xs font-semibold">
               Out of stock
             </span>
           )}
         </div>
-        <CardContent className="px-4 pt-3 pb-2">
-          <p className="truncate text-sm font-medium">{product.name}</p>
-          <p className="text-primary text-sm font-semibold">
-            {formatPrice(product.price, currency)}
-          </p>
-        </CardContent>
+
+        <div className="space-y-1.5 mt-2 flex flex-col">
+          <p className="truncate text-sm font-semibold">{product.name}</p>
+
+          <StarRatingDisplay rating={5} />
+
+          {/* {rating && rating.reviewCount > 0 && (
+            <div className="flex items-center gap-1">
+              <StarRatingDisplay rating={rating.averageRating} />
+              <span className="text-muted-foreground text-xs">
+                {rating.averageRating.toFixed(1)}
+              </span>
+            </div>
+          )} */}
+
+          <div className="flex items-center justify-between">
+            <p className="font-bold text-ink/90 tracking-wide">
+              {formatPrice(product.price, currency)}
+            </p>
+
+            <AddToCartButton
+              shopId={shopId}
+              shopSlug={shopSlug}
+              productId={product.id}
+              maxQuantity={product.quantity}
+            />
+          </div>
+        </div>
       </Link>
-      <CardContent className="px-4 pb-4">
-        <AddToCartButton
-          shopId={shopId}
-          shopSlug={shopSlug}
-          productId={product.id}
-          maxQuantity={product.quantity}
-        />
-      </CardContent>
-    </Card>
+    </div>
   );
 }

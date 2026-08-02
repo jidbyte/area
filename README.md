@@ -36,7 +36,18 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
 
-
+-- features file structure
 app > auth, notifications, payments, search
 admin > products, sales, purchases, suppliers, customers, analytics
 guest > shop, cart, checkout
+
+
+-- analytics filters
+Today - D
+This Week - w
+This Month - M
+This Year -Y
+Last 30 days -30D - default
+Last 90 days - 90D
+Max(10 years) - MAX
+Custom Period - Custom
