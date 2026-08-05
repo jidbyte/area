@@ -3,6 +3,8 @@ import { Nunito_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/shared/config/site";
 import { ThemeProvider } from "@/shared/components/theme/theme-provider";
+import { TooltipProvider } from "@/shared/components/ui/tooltip";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const nunitoSans = Nunito_Sans({
@@ -30,6 +32,8 @@ export default function RootLayout({
         },
       }}
     >
+      <Toaster position="top-right" />
+
       <html lang="en" suppressHydrationWarning className={nunitoSans.variable}>
         <body className="antialiased font-sans">
           <ThemeProvider
@@ -38,7 +42,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
+            <TooltipProvider>{children}</TooltipProvider>
           </ThemeProvider>
         </body>
       </html>

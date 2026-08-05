@@ -1,9 +1,9 @@
-export const RANGE_PRESETS = ["D", "W", "M", "Y", "MAX"] as const;
+export const RANGE_PRESETS = ["D", "W", "M", "Y", "30D", "90D", "MAX"] as const;
 export type RangePreset = (typeof RANGE_PRESETS)[number] | "custom";
 
-export const DEFAULT_RANGE_PRESET: RangePreset = "M";
+export const DEFAULT_RANGE_PRESET: RangePreset = "30D";
 
-const MAX_SPAN_YEARS = 5;
+const MAX_SPAN_YEARS = 10;
 
 export type ResolvedRange = {
   preset: RangePreset;
@@ -42,6 +42,12 @@ function startOfYear(d: Date): Date {
   return copy;
 }
 
+function daysAgo(d: Date, days: number): Date {
+  const copy = startOfDay(d);
+  copy.setDate(copy.getDate() - (days - 1)); // inclusive of today
+  return copy;
+}
+
 function toDateParam(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
@@ -55,7 +61,9 @@ function granularityFor(
   const days = Math.ceil(
     (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
   );
-  if (days <= 60) return "day";
+  // Keep daily buckets through the 90D preset; only fall back to monthly
+  // for genuinely long spans (Y, MAX, or a wide custom range).
+  if (days <= 95) return "day";
   return "month";
 }
 
@@ -92,12 +100,12 @@ export function resolveDateRange(searchParams: {
       : startOfDay(parsedFrom);
     let end = Number.isNaN(parsedTo.getTime()) ? now : parsedTo;
 
-    // Clamp: never before the 5-year ceiling, never after now, never inverted.
+    // Clamp: never before the ceiling, never after now, never inverted.
     if (start < maxStart) start = maxStart;
     if (end > now) end = now;
     if (start > end) start = end;
 
-    // Clamp span to 5 years even if from/to individually looked valid.
+    // Clamp span to the ceiling even if from/to individually looked valid.
     const spanMs = end.getTime() - start.getTime();
     const maxSpanMs = MAX_SPAN_YEARS * 365 * 24 * 60 * 60 * 1000;
     if (spanMs > maxSpanMs) start = new Date(end.getTime() - maxSpanMs);
@@ -121,7 +129,11 @@ export function resolveDateRange(searchParams: {
           ? startOfMonth(now)
           : preset === "Y"
             ? startOfYear(now)
-            : maxStart; // MAX
+            : preset === "30D"
+              ? daysAgo(now, 30)
+              : preset === "90D"
+                ? daysAgo(now, 90)
+                : maxStart; // MAX
 
   return {
     preset,

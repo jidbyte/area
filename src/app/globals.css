@@ -8,8 +8,8 @@
   /* Base */
   --surface: #fcfcff;
   --ink: #0f172a;
-  --muted: #eeeeee;
-  --neutral: #6B7685;
+  --neutral: #5D5D5D;
+  --muted: #B3B3B3;
 
   /* Brand */
   --primary: #0284C7;
@@ -34,8 +34,8 @@
   /* Base */
   --surface: #000000;
   --ink: #fdfdfd;
-  --muted: #222222;
-  --neutral: #6B7685;
+  --muted: #5D5D5D;
+  --neutral: #B3B3B3;
 
 /* Brand */
   --primary: #57CAFC;

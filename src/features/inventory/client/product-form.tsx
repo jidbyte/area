@@ -4,9 +4,17 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { Sparkles, PackagePlus, Info, Loader2 } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import { Textarea } from "@/shared/components/ui/textarea";
+import {
+  PageHeader,
+  PageTitle,
+  PageAction,
+} from "@/shared/components/pages/page-header";
 import {
   createProductSchema,
   type CreateProductInput,
@@ -15,7 +23,15 @@ import {
   createProduct,
   updateProduct,
 } from "@/features/inventory/server/actions";
+import { generateProductDescription } from "@/features/inventory/server/ai";
 import { ImageUploader, type UploadedImage } from "./image-uploader";
+import { cn } from "@/shared/lib/utils";
+import { Message } from "@/shared/components/pages/message";
+import { FormField } from "@/shared/components/pages/form-field";
+import { Separator } from "@/shared/components/ui/separator";
+import { CategorySelector } from "./category-selector";
+
+const DESCRIPTION_MAX = 500;
 
 export function ProductForm({
   shopId,
@@ -32,6 +48,7 @@ export function ProductForm({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isGenerating, startGenerating] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
   const [images, setImages] = useState<UploadedImage[]>(
     (defaultValues?.images as UploadedImage[] | undefined) ?? [],
@@ -41,6 +58,7 @@ export function ProductForm({
     register,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateProductInput>({
     resolver: zodResolver(createProductSchema),
@@ -61,176 +79,295 @@ export function ProductForm({
     },
   });
 
+  const description = watch("description") ?? "";
+  const name = watch("name");
+  const brand = watch("brand");
+  const model = watch("model");
+  const categories = watch("categories") ?? [];
+  const price = watch("price");
+
+  const handleGenerateDescription = () => {
+    if (!name?.trim()) {
+      toast.error("Add a product name first so AI has something to work with.");
+      return;
+    }
+
+    startGenerating(async () => {
+      const result = await generateProductDescription({
+        name,
+        brand,
+        model,
+        categories,
+        price,
+        currency,
+      });
+
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+
+      setValue("description", result.description, { shouldValidate: true });
+      toast.success("Description generated");
+    });
+  };
+
   const onSubmit = (values: CreateProductInput) => {
     setServerError(null);
     const payload = { ...values, images };
+
     startTransition(async () => {
       const result = productId
         ? await updateProduct(productId, payload)
         : await createProduct(shopId, payload);
+
       if (!result.success) {
         setServerError(result.error);
+        toast.error(result.error);
         return;
       }
-      router.push("/admin/products");
+
+      toast.success(productId ? "Product updated" : "Product created");
+      router.push(
+        productId ? `/admin/products/${productId}` : "/admin/products",
+      );
       router.refresh();
     });
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 space-y-1.5">
-          <label className="text-sm font-medium">Product images</label>
-          <ImageUploader
-            shopSlug={shopSlug}
-            images={images}
-            onChange={setImages}
-          />
+    <>
+      <form onSubmit={handleSubmit(onSubmit)} className="mx-auto max-w-5xl">
+        <PageHeader>
+          <PageTitle icon={PackagePlus}>
+            {productId ? "Edit product" : "Add new product"}
+          </PageTitle>
+
+          <PageAction className="hidden md:flex gap-2">
+            <Button
+              variant="secondary"
+              shape="round"
+              type="submit"
+              disabled={isPending}
+            >
+              {isPending ? "Saving..." : productId ? "Save changes" : "Confirm"}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              shape="round"
+              onClick={() =>
+                router.push(
+                  productId
+                    ? `/admin/products/${productId}`
+                    : "/admin/products",
+                )
+              }
+            >
+              Cancel
+            </Button>
+          </PageAction>
+        </PageHeader>
+
+        <div className="grid grid-cols-1 gap-4 mt-4 lg:mt-6 lg:grid-cols-2 lg:gap-6">
+          <section className="border rounded-md p-4 lg:p-6">
+            <div className="flex items-center gap-2 text-neutral">
+              <Info className="size-4 " />
+              <span className="font-semibold md:text-lg">Details</span>
+            </div>
+
+            {serverError && <Message variant="error">{serverError}</Message>}
+
+            <div className="space-y-2">
+              <FormField
+                label="Name"
+                htmlFor="name"
+                required
+                error={errors.name?.message}
+              >
+                <Input id="name" {...register("name")} />
+              </FormField>
+
+              <FormField
+                label="Description"
+                htmlFor="description"
+                required
+                error={errors.description?.message}
+              >
+                <Textarea
+                  id="description"
+                  rows={4}
+                  maxLength={DESCRIPTION_MAX}
+                  className="mt-0.5"
+                  {...register("description")}
+                />
+
+                <div className="mt-1 flex items-center justify-end gap-4">
+                  <button
+                    type="button"
+                    onClick={handleGenerateDescription}
+                    disabled={isGenerating}
+                    className="text-xs font-semibold flex items-center gap-1 text-success cursor-pointer"
+                  >
+                    {isGenerating ? (
+                      <span className="flex items-center gap-1">
+                        <Loader2 className="size-3 animate-spin" /> Crafting...
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 underline hover:text-neutral">
+                        <Sparkles className="size-3" /> Generate with AI
+                      </span>
+                    )}
+                  </button>
+
+                  <span
+                    className={cn(
+                      "text-xs tabular-nums text-neutral",
+                      description.length >= DESCRIPTION_MAX && "text-warning",
+                    )}
+                  >
+                    {description.length}/{DESCRIPTION_MAX}
+                  </span>
+                </div>
+              </FormField>
+            </div>
+
+            <Separator className="my-4" />
+
+            <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+              <FormField
+                label="SKU"
+                htmlFor="sku"
+                required
+                error={errors.sku?.message}
+              >
+                <Input id="sku" {...register("sku")} />
+              </FormField>
+
+              <FormField label="Code" htmlFor="code">
+                <Input id="code" {...register("code" as never)} />
+              </FormField>
+
+              <FormField label="Brand" htmlFor="brand">
+                <Input id="brand" {...register("brand")} />
+              </FormField>
+
+              <FormField label="Model" htmlFor="model">
+                <Input id="model" {...register("model")} />
+              </FormField>
+            </div>
+
+            <Separator className="mt-6 mb-4" />
+
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                <FormField
+                  label="Cost price"
+                  htmlFor="cost"
+                  error={errors.cost?.message}
+                >
+                  <Input
+                    id="cost"
+                    type="number"
+                    step="1"
+                    {...register("cost", { valueAsNumber: true })}
+                  />
+                </FormField>
+
+                <FormField
+                  label="Selling price"
+                  htmlFor="price"
+                  error={errors.price?.message}
+                >
+                  <Input
+                    id="price"
+                    type="number"
+                    step="1"
+                    {...register("price", { valueAsNumber: true })}
+                  />
+                </FormField>
+              </div>
+
+              <div className="grid grid-cols-3 gap-y-2 gap-x-4">
+                <FormField
+                  label="Qty in stock"
+                  htmlFor="quantity"
+                  error={errors.quantity?.message}
+                >
+                  <Input
+                    id="quantity"
+                    type="number"
+                    step="1"
+                    {...register("quantity", { valueAsNumber: true })}
+                  />
+                </FormField>
+
+                <FormField label="Restock level" htmlFor="restockLevel">
+                  <Input
+                    id="restockLevel"
+                    type="number"
+                    step="1"
+                    {...register("restockLevel", { valueAsNumber: true })}
+                  />
+                </FormField>
+
+                <FormField label="Optimal level" htmlFor="optimalLevel">
+                  <Input
+                    id="optimalLevel"
+                    type="number"
+                    step="1"
+                    {...register("optimalLevel", { valueAsNumber: true })}
+                  />
+                </FormField>
+              </div>
+            </div>
+          </section>
+
+          <div className="space-y-4 lg:space-y-6">
+            <section className="border rounded-md p-4 lg:p-6">
+              <ImageUploader
+                shopSlug={shopSlug}
+                images={images}
+                onChange={setImages}
+              />
+            </section>
+
+            <section className="border rounded-md p-4 lg:p-6">
+              <CategorySelector
+                value={categories}
+                onChange={(next) =>
+                  setValue("categories", next, { shouldValidate: true })
+                }
+              />
+            </section>
+          </div>
         </div>
 
-        <div className="space-y-1.5">
-          <label htmlFor="name" className="text-sm font-medium">
-            Name
-          </label>
-          <Input id="name" {...register("name")} />
-          {errors.name && (
-            <p className="text-destructive text-sm">{errors.name.message}</p>
-          )}
-        </div>
+        <div className="flex items-center justify-end mt-4 mb-8 gap-2 md:hidden">
+          <Button
+            variant="secondary"
+            shape="round"
+            type="submit"
+            disabled={isPending}
+          >
+            {isPending ? "Saving..." : productId ? "Save changes" : "Confirm"}
+          </Button>
 
-        <div className="space-y-1.5">
-          <label htmlFor="sku" className="text-sm font-medium">
-            SKU
-          </label>
-          <Input id="sku" {...register("sku")} />
-          {errors.sku && (
-            <p className="text-destructive text-sm">{errors.sku.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="brand" className="text-sm font-medium">
-            Brand
-          </label>
-          <Input id="brand" {...register("brand")} />
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="model" className="text-sm font-medium">
-            Model
-          </label>
-          <Input id="model" {...register("model")} />
-        </div>
-
-        <div className="col-span-2 space-y-1.5">
-          <label htmlFor="description" className="text-sm font-medium">
-            Description
-          </label>
-          <Input id="description" {...register("description")} />
-        </div>
-
-        <div className="col-span-2 space-y-1.5">
-          <label htmlFor="categories" className="text-sm font-medium">
-            Categories
-          </label>
-          <Input
-            id="categories"
-            placeholder="Comma-separated, e.g. Speakers, Audio"
-            defaultValue={(defaultValues?.categories ?? []).join(", ")}
-            onChange={(e) =>
-              setValue(
-                "categories",
-                e.target.value
-                  .split(",")
-                  .map((c) => c.trim())
-                  .filter(Boolean),
+          <Button
+            type="button"
+            variant="outline"
+            shape="round"
+            onClick={() =>
+              router.push(
+                productId ? `/admin/products/${productId}` : "/admin/products",
               )
             }
-          />
+          >
+            Cancel
+          </Button>
         </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="price" className="text-sm font-medium">
-            Price ({currency})
-          </label>
-          <Input
-            id="price"
-            type="number"
-            step="1"
-            {...register("price", { valueAsNumber: true })}
-          />
-          {errors.price && (
-            <p className="text-destructive text-sm">{errors.price.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="cost" className="text-sm font-medium">
-            Cost ({currency})
-          </label>
-          <Input
-            id="cost"
-            type="number"
-            step="1"
-            {...register("cost", { valueAsNumber: true })}
-          />
-          {errors.cost && (
-            <p className="text-destructive text-sm">{errors.cost.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="quantity" className="text-sm font-medium">
-            Quantity in stock
-          </label>
-          <Input
-            id="quantity"
-            type="number"
-            step="1"
-            {...register("quantity", { valueAsNumber: true })}
-          />
-          {errors.quantity && (
-            <p className="text-destructive text-sm">
-              {errors.quantity.message}
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="restockLevel" className="text-sm font-medium">
-            Restock level
-          </label>
-          <Input
-            id="restockLevel"
-            type="number"
-            step="1"
-            {...register("restockLevel", { valueAsNumber: true })}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <label htmlFor="optimalLevel" className="text-sm font-medium">
-            Optimal level
-          </label>
-          <Input
-            id="optimalLevel"
-            type="number"
-            step="1"
-            {...register("optimalLevel", { valueAsNumber: true })}
-          />
-        </div>
-      </div>
-
-      {serverError && <p className="text-destructive text-sm">{serverError}</p>}
-
-      <Button type="submit" disabled={isPending}>
-        {isPending
-          ? "Saving..."
-          : productId
-            ? "Save changes"
-            : "Create product"}
-      </Button>
-    </form>
+      </form>
+    </>
   );
 }

@@ -13,6 +13,7 @@ import {
 } from "@/shared/db/schema";
 import { requireShopMembership } from "@/features/shops/server/authorize";
 import { createProductSchema, type CreateProductInput } from "./schema";
+import { getShopForCurrentUser } from "@/features/shops/server/queries";
 
 export type ActionResult<T = undefined> =
   { success: true; data: T } | { success: false; error: string };
@@ -110,14 +111,12 @@ export async function createProduct(
   }
 
   if (categoryIds.length > 0) {
-    await db
-      .insert(productCategory)
-      .values(
-        categoryIds.map((categoryId) => ({
-          productId: created.id,
-          categoryId,
-        })),
-      );
+    await db.insert(productCategory).values(
+      categoryIds.map((categoryId) => ({
+        productId: created.id,
+        categoryId,
+      })),
+    );
   }
 
   if (quantity > 0) {
@@ -279,4 +278,18 @@ export async function adjustStock(
 
   revalidatePath(`/${authResult.shop.slug}/admin/products`);
   return { success: true, data: undefined };
+}
+
+export async function getShopCategories(): Promise<
+  { id: string; name: string }[]
+> {
+  const shop = await getShopForCurrentUser();
+  if (!shop) return [];
+
+  const categories = await db.query.category.findMany({
+    where: eq(category.shopId, shop.id),
+    columns: { id: true, name: true },
+  });
+
+  return categories;
 }

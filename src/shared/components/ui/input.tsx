@@ -23,10 +23,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           data-slot="input"
           className={cn(
-            "flex h-9 w-full rounded-full border border-ink/80 bg-muted/80 py-2 px-4 text-sm tracking-wide text-ink transition-all outline-none",
-            "placeholder:text-neutral",
+            "flex h-9 w-full rounded-md border border-ink/60 bg-muted/50 py-2 px-4 text-sm tracking-wide text-ink transition-all outline-none",
             "focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-info focus-visible:outline-none",
-            "disabled:cursor-not-allowed disabled:opacity-60",
+            "disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-neutral",
             "aria-invalid:border-transparent aria-invalid:ring-1 aria-invalid:ring-danger",
             hasIcon && "pl-8",
             className,

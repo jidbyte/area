@@ -18,7 +18,6 @@ export default async function EditProductPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Edit product</h1>
       <ProductForm
         shopId={shop.id}
         shopSlug={shop.slug}
@@ -35,7 +34,9 @@ export default async function EditProductPage({
           quantity: productRecord.quantity,
           restockLevel: productRecord.restockLevel,
           optimalLevel: productRecord.optimalLevel,
-          categories: productRecord.productCategories.map((pc) => pc.category.name),
+          categories: productRecord.productCategories.map(
+            (pc) => pc.category.name,
+          ),
           images: productRecord.images.map((img) => ({
             url: img.url,
             fileKey: img.fileKey,

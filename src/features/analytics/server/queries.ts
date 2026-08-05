@@ -312,17 +312,16 @@ export async function getInventoryOverviewForShop(shopId: string) {
 
   return {
     totalProducts: products.length,
+    totalStockQuantity: products.reduce((sum, p) => sum + p.quantity, 0),
     totalInventoryValue: products.reduce(
       (sum, p) => sum + p.quantity * p.cost,
       0,
     ),
     lowStockCount: lowStock.length,
-    lowStockProducts: lowStock
-      .slice(0, 5)
-      .map((p) => ({
-        name: p.name,
-        quantity: p.quantity,
-        restockLevel: p.restockLevel,
-      })),
+    lowStockProducts: lowStock.slice(0, 5).map((p) => ({
+      name: p.name,
+      quantity: p.quantity,
+      restockLevel: p.restockLevel,
+    })),
   };
 }

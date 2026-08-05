@@ -55,7 +55,7 @@ export default async function Home() {
           </Show>
         </div>
       </header>
-      {/*
+
       <main className="mx-auto flex max-w-3xl flex-col gap-8">
         <Card>
           <CardHeader>
@@ -102,7 +102,21 @@ export default async function Home() {
             </div>
           )}
         </div>
-      </main> */}
+
+        <div className="flex items-center gap-8">
+          <h4 className="text-lg p-4 border border-neutral text-neutral">
+            TEXT N
+          </h4>
+          <h4 className="text-lg p-4 border border-muted text-muted">TEXT M</h4>
+          <span className="bg-neutral text-surface p-4">NTL</span>
+          <span className="bg-muted text-ink p-4">MTD</span>
+        </div>
+
+        <p className="text-neutral text-sm">
+          AREA — a multi-vendor marketplace platform with a storefront for
+          buyers and an inventory/business dashboard for shops.
+        </p>
+      </main>
     </div>
   );
 }

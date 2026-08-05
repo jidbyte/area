@@ -1,12 +1,4 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
-
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card";
 import { getShopForCurrentUser } from "@/features/shops/server/queries";
 import { getCurrencySymbol } from "@/shared/config/currencies";
 import { listSalesByShop } from "@/features/sales/server/queries";
@@ -18,12 +10,27 @@ import {
   getCurrentSalesStats,
   getCurrentPurchasesStats,
   getInventoryOverviewForShop,
+  getTopProductsBySales,
 } from "@/features/analytics/server/queries";
 import { listCustomersByShop } from "@/features/customers/server/queries";
 import { listSuppliersByShop } from "@/features/suppliers/server/queries";
-import { RevenueProfitChart } from "@/features/analytics/client/revenue-profit-chart";
+import { RevenueProfitChartCard } from "@/features/analytics/client/revenue-profit-chart";
 import { DateRangeFilter } from "@/features/analytics/client/date-range-filter";
-import { StatCard } from "@/features/analytics/client/stat-card";
+import { TbLayoutDashboardFilled } from "react-icons/tb";
+import {
+  LowStockCard,
+  RecentSalesCard,
+  BestSellingProductsCard,
+} from "@/features/analytics/client/dashboard-cards";
+import { DashboardStats } from "@/features/analytics/client/dashboard-stats";
+import {
+  PageAction,
+  PageHeader,
+  PageTitle,
+} from "@/shared/components/pages/page-header";
+import { cn } from "@/shared/lib/utils";
+
+const MIN_SALES_FOR_INSIGHTS = 5;
 
 export default async function AdminDashboardPage({
   searchParams,
@@ -45,6 +52,7 @@ export default async function AdminDashboardPage({
     customers,
     suppliers,
     sales,
+    topProducts,
   ] = await Promise.all([
     getRangeSalesStats(shop.id, range.start, range.end),
     getRangePurchasesStats(shop.id, range.start, range.end),
@@ -55,132 +63,60 @@ export default async function AdminDashboardPage({
     listCustomersByShop(shop.id),
     listSuppliersByShop(shop.id),
     listSalesByShop(shop.id),
+    getTopProductsBySales(shop.id, range.start, range.end, 5),
   ]);
 
   const currencySymbol = getCurrencySymbol(shop.currency);
   const recentSales = sales.slice(0, 5);
+  const hasEnoughSalesForInsights = sales.length >= MIN_SALES_FOR_INSIGHTS;
+
+  // Net profit for the selected range = sum of per-bucket (revenue - cogs)
+  // from the same series already fetched for the chart, so no extra query.
+  const netProfit = series.reduce((sum, d) => sum + d.profit, 0);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-          <p className="text-muted-foreground text-sm">
-            Buyers can find you at{" "}
-            <span className="font-medium">/{shop.slug}</span>
-          </p>
-        </div>
-        <DateRangeFilter basePath="/admin" range={range} />
-      </div>
+    <div className="space-y-6 mt-6">
+      <PageHeader>
+        <PageTitle icon={TbLayoutDashboardFilled}>Overview</PageTitle>
+        <PageAction>
+          <DateRangeFilter basePath="/admin" range={range} />
+        </PageAction>
+      </PageHeader>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        <StatCard
-          label="Revenue"
-          value={`${currencySymbol}${rangeSales.totalRevenue.toLocaleString()}`}
-        />
-        <StatCard
-          label="Sale transactions"
-          value={String(rangeSales.totalSalesCount)}
-        />
-        <StatCard
-          label="Outstanding balance"
-          value={`${currencySymbol}${currentSales.outstandingBalance.toLocaleString()}`}
-        />
-        <StatCard
-          label="Inventory spend"
-          value={`${currencySymbol}${rangePurchases.totalSpent.toLocaleString()}`}
-          hint={
-            currentPurchases.pendingCount > 0
-              ? `${currentPurchases.pendingCount} pending order${currentPurchases.pendingCount === 1 ? "" : "s"}`
-              : undefined
-          }
-        />
-        <StatCard
-          label="Total inventory value"
-          value={`${currencySymbol}${inventoryOverview.totalInventoryValue.toLocaleString()}`}
-        />
-        <StatCard
-          label="Products"
-          value={String(inventoryOverview.totalProducts)}
-          hint={
-            inventoryOverview.lowStockCount > 0
-              ? `${inventoryOverview.lowStockCount} low stock`
-              : undefined
-          }
-        />
-        <StatCard label="Customers" value={String(customers.length)} />
-        <StatCard label="Suppliers" value={String(suppliers.length)} />
-      </div>
+      <DashboardStats
+        currencySymbol={currencySymbol}
+        totalSalesRevenue={rangeSales.totalRevenue}
+        netProfit={netProfit}
+        totalSalesCount={rangeSales.totalSalesCount}
+        inventorySpend={rangePurchases.totalSpent}
+        pendingPurchaseOrders={currentPurchases.pendingCount}
+        totalInventoryValue={inventoryOverview.totalInventoryValue}
+        totalStockQuantity={inventoryOverview.totalStockQuantity}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Revenue &amp; profit</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <RevenueProfitChart data={series} currency={currencySymbol} />
-        </CardContent>
-      </Card>
+      <RevenueProfitChartCard data={series} currency={currencySymbol} />
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        {inventoryOverview.lowStockProducts.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Low stock</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <ul className="space-y-1 text-sm">
-                {inventoryOverview.lowStockProducts.map((p) => (
-                  <li key={p.name} className="flex justify-between">
-                    <span>{p.name}</span>
-                    <span className="text-destructive">{p.quantity} left</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/admin/products"
-                className="text-primary text-xs hover:underline"
-              >
-                View all products
-              </Link>
-            </CardContent>
-          </Card>
+      <div
+        className={cn(
+          "grid gap-4 lg:gap-8 my-10",
+          hasEnoughSalesForInsights ? "lg:grid-cols-3" : "lg:grid-cols-1",
         )}
+      >
+        {hasEnoughSalesForInsights && (
+          <>
+            <BestSellingProductsCard
+              products={topProducts}
+              currencySymbol={currencySymbol}
+            />
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Recent sales</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {recentSales.length === 0 ? (
-              <p className="text-muted-foreground text-sm">
-                No sales recorded yet.
-              </p>
-            ) : (
-              <ul className="space-y-1 text-sm">
-                {recentSales.map((s) => (
-                  <li key={s.id} className="flex justify-between">
-                    <Link
-                      href={`/admin/sales/${s.id}`}
-                      className="hover:underline"
-                    >
-                      {s.saleNumber} — {s.customerName}
-                    </Link>
-                    <span>
-                      {currencySymbol}
-                      {s.totalAmount.toLocaleString()}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <Link
-              href="/admin/sales"
-              className="text-primary text-xs hover:underline"
-            >
-              View all sales
-            </Link>
-          </CardContent>
-        </Card>
+            <RecentSalesCard
+              sales={recentSales}
+              currencySymbol={currencySymbol}
+            />
+
+            <LowStockCard products={inventoryOverview.lowStockProducts} />
+          </>
+        )}
       </div>
     </div>
   );

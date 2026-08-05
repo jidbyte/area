@@ -1,17 +1,25 @@
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from "@/shared/components/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 import {
   RANGE_PRESETS,
   type ResolvedRange,
 } from "@/features/analytics/server/date-range";
 
-const PRESET_LABELS: Record<(typeof RANGE_PRESETS)[number], string> = {
-  D: "Day",
-  W: "Week",
-  M: "Month",
-  Y: "Year",
-  MAX: "Max",
+const PRESET_TOOLTIPS: Record<(typeof RANGE_PRESETS)[number], string> = {
+  D: "Today",
+  W: "This week",
+  M: "This month",
+  Y: "This year",
+  "30D": "Last 30 days",
+  "90D": "Last 90 days",
+  MAX: "Max (10 years)",
 };
 
 export function DateRangeFilter({
@@ -22,40 +30,49 @@ export function DateRangeFilter({
   range: ResolvedRange;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2 bg-surface/70 p-2 rounded-md w-full">
       <div className="flex gap-1 text-sm">
         {RANGE_PRESETS.map((preset) => (
-          <a
-            key={preset}
-            href={`${basePath}?range=${preset}`}
-            className={cn(
-              "rounded-md px-2 py-1",
-              range.preset === preset
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent",
-            )}
-          >
-            {PRESET_LABELS[preset]}
-          </a>
+          <Tooltip key={preset}>
+            <TooltipTrigger asChild>
+              <a
+                href={`${basePath}?range=${preset}`}
+                className={cn(
+                  "rounded-sm px-2 py-1",
+                  range.preset === preset
+                    ? "bg-ink text-surface"
+                    : "hover:underline",
+                )}
+              >
+                {preset}
+              </a>
+            </TooltipTrigger>
+            <TooltipContent>{PRESET_TOOLTIPS[preset]}</TooltipContent>
+          </Tooltip>
         ))}
       </div>
 
       <details className="relative" open={range.preset === "custom"}>
-        <summary
-          className={cn(
-            "cursor-pointer list-none rounded-md px-2 py-1 text-sm",
-            range.preset === "custom"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-accent",
-          )}
-        >
-          Custom
-        </summary>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <summary
+              className={cn(
+                "cursor-pointer list-none rounded-md px-2 py-1 text-sm",
+                range.preset === "custom"
+                  ? "bg-neutral text-surface"
+                  : "hover:underline",
+              )}
+            >
+              Custom
+            </summary>
+          </TooltipTrigger>
+          <TooltipContent>Custom period</TooltipContent>
+        </Tooltip>
 
         <form
           action={basePath}
           method="GET"
-          className="bg-popover absolute right-0 z-10 mt-2 flex flex-col gap-2 rounded-md border p-3 shadow-md"
+          className="bg-surface absolute right-0 z-10 mt-2 flex flex-col gap-2 rounded-md border border-neutral p-3 shadow-md"
         >
           <input type="hidden" name="range" value="custom" />
 
@@ -79,8 +96,8 @@ export function DateRangeFilter({
             />
           </label>
 
-          <p className="text-muted-foreground text-xs">
-            Up to 5 years, capped at today.
+          <p className="text-neutral text-xs">
+            Up to 10 years, capped at today.
           </p>
 
           <Button type="submit" size="sm">
