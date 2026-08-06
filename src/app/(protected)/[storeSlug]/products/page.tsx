@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { getShopBySlug } from "@/features/app/stores/server/queries";
 import { listProductsByShop } from "@/features/admin/products/server/queries";
@@ -39,6 +39,10 @@ export default async function ProductsPage({
   }
 
   return (
-    <ProductsPageClient currency={shop.currency} products={rows} shopSlug={storeSlug} />
+    <ProductsPageClient
+      currency={shop.currency}
+      products={rows}
+      shopSlug={storeSlug}
+    />
   );
 }

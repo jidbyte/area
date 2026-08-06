@@ -2,10 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { placeholderAssets } from "@/assets/placeholder";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { formatPrice } from "@/shared/utils/currency";
 import { AddToCartButton } from "@/features/app/payments/client/add-to-cart-button";
-import { demoImages } from "@/assets/img";
 
 export type StorefrontProduct = {
   id: string;
@@ -20,7 +18,6 @@ export function ProductCard({
   shopSlug,
   currency,
   product,
-  rating,
 }: {
   shopId: string;
   shopSlug: string;

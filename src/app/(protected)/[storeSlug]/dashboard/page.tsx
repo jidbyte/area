@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getShopBySlug } from "@/features/app/stores/server/queries";
 import { getCurrencySymbol } from "@/shared/config/currencies";
 import { listSalesByShop } from "@/features/admin/sales/server/queries";
@@ -7,13 +7,10 @@ import {
   getRangeSalesStats,
   getRangePurchasesStats,
   getRevenueProfitSeries,
-  getCurrentSalesStats,
   getCurrentPurchasesStats,
   getInventoryOverviewForShop,
   getTopProductsBySales,
 } from "@/features/admin/analytics/server/queries";
-import { listCustomersByShop } from "@/features/admin/customers/server/queries";
-import { listSuppliersByShop } from "@/features/admin/suppliers/server/queries";
 import { RevenueProfitChartCard } from "@/features/admin/analytics/client/revenue-profit-chart";
 import { DateRangeFilter } from "@/features/admin/analytics/client/date-range-filter";
 import { TbLayoutDashboardFilled } from "react-icons/tb";
@@ -49,22 +46,16 @@ export default async function AdminDashboardPage({
     rangeSales,
     rangePurchases,
     series,
-    currentSales,
     currentPurchases,
     inventoryOverview,
-    customers,
-    suppliers,
     sales,
     topProducts,
   ] = await Promise.all([
     getRangeSalesStats(shop.id, range.start, range.end),
     getRangePurchasesStats(shop.id, range.start, range.end),
     getRevenueProfitSeries(shop.id, range.start, range.end, range.granularity),
-    getCurrentSalesStats(shop.id),
     getCurrentPurchasesStats(shop.id),
     getInventoryOverviewForShop(shop.id),
-    listCustomersByShop(shop.id),
-    listSuppliersByShop(shop.id),
     listSalesByShop(shop.id),
     getTopProductsBySales(shop.id, range.start, range.end, 5),
   ]);

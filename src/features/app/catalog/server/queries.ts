@@ -1,7 +1,14 @@
-import { and, desc, eq, gte, ilike, inArray, isNull, or } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, isNull, or } from "drizzle-orm";
 
 import { db } from "@/shared/db";
-import { product, sale, saleItem, shop, category, productCategory } from "@/shared/db/schema";
+import {
+  product,
+  sale,
+  saleItem,
+  shop,
+  category,
+  productCategory,
+} from "@/shared/db/schema";
 
 export type CatalogProduct = {
   id: string;
@@ -32,7 +39,8 @@ function toCatalogProduct(
     name: p.name,
     sellingPrice: p.sellingPrice,
     quantity: p.quantity,
-    primaryImageUrl: p.images.find((i) => i.isPrimary)?.url ?? p.images[0]?.url ?? null,
+    primaryImageUrl:
+      p.images.find((i) => i.isPrimary)?.url ?? p.images[0]?.url ?? null,
     shopId: p.shopId,
     shopSlug: s.slug,
     shopName: s.name,

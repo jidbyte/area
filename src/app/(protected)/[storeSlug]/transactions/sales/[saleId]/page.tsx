@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/shared/components/ui/button";
@@ -32,7 +32,11 @@ export default async function SaleDetailPage({
         </div>
         {saleRecord.paymentStatus !== "cancelled" && (
           <Button asChild size="sm" variant="outline">
-            <Link href={`/${storeSlug}/transactions/sales/${saleRecord.id}/edit`}>Edit</Link>
+            <Link
+              href={`/${storeSlug}/transactions/sales/${saleRecord.id}/edit`}
+            >
+              Edit
+            </Link>
           </Button>
         )}
       </div>

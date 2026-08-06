@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { getShopBySlug } from "@/features/app/stores/server/queries";
 import { getSupplierById } from "@/features/admin/suppliers/server/queries";

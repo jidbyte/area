@@ -20,15 +20,17 @@ export type HeroPageProps = {
   categories: string[];
 };
 
-export default function HeroPage({
-  shopSlug,
-  shopName,
-  description,
-  currency,
-  startingPrice,
-  productCount,
-  categories,
-}: HeroPageProps) {
+// export default function HeroPage({
+//   shopSlug,
+//   shopName,
+//   description,
+//   currency,
+//   startingPrice,
+//   productCount,
+//   categories,
+// }: HeroPageProps) {
+
+export default function HeroPage({ shopSlug, categories }: HeroPageProps) {
   return (
     <div>
       <div className="mx-auto flex flex-col gap-6 xl:flex-row">

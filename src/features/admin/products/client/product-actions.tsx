@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useActionTransition } from "@/shared/hooks/use-action-transition";
 import { useRouter } from "next/navigation";
-import { PackagePlus, Settings2, Trash2 } from "lucide-react";
+import { Settings2, Trash2 } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";

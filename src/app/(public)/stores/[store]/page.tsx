@@ -6,14 +6,11 @@ import {
   searchActiveProductsByShop,
   getBestSellingProducts,
 } from "@/features/admin/products/server/queries";
-import {
-  ProductCard,
-  type StorefrontProduct,
-} from "@/features/admin/products/client/product-card";
+import { type StorefrontProduct } from "@/features/admin/products/client/product-card";
 import { ShopHeader } from "@/features/app/stores/client/shop-header";
 import { getReviewSummariesForProducts } from "@/features/admin/reviews/server/queries";
-import HeroPage from "@/features/app/stores/client/hero-page";
 import { BestSelling } from "@/features/app/stores/client/best-selling";
+import HeroPage from "@/features/app/stores/client/hero-page";
 import ShopFooter from "@/features/app/stores/client/footer";
 
 export const dynamic = "force-dynamic";
@@ -31,9 +28,9 @@ export default async function ShopStorefrontPage({
   if (!shop) notFound();
 
   const allProducts = await listActiveProductsByShop(shop.id);
-  const products = q
-    ? await searchActiveProductsByShop(shop.id, q)
-    : allProducts;
+  // const products = q
+  //   ? await searchActiveProductsByShop(shop.id, q)
+  //   : allProducts;
 
   // Category pills/marquee always reflect the full catalog, not the
   // filtered search results, so a search doesn't make categories disappear.
@@ -45,16 +42,14 @@ export default async function ShopStorefrontPage({
     ),
   ).sort();
 
-  const rows: StorefrontProduct[] = products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    sellingPrice: p.sellingPrice,
-    quantity: p.quantity,
-    primaryImageUrl:
-      p.images.find((i) => i.isPrimary)?.url ?? p.images[0]?.url ?? null,
-  }));
-
-  const ratings = await getReviewSummariesForProducts(rows.map((p) => p.id));
+  // const rows: StorefrontProduct[] = products.map((p) => ({
+  //   id: p.id,
+  //   name: p.name,
+  //   sellingPrice: p.sellingPrice,
+  //   quantity: p.quantity,
+  //   primaryImageUrl:
+  //     p.images.find((i) => i.isPrimary)?.url ?? p.images[0]?.url ?? null,
+  // }));
 
   const startingPrice =
     allProducts.length > 0

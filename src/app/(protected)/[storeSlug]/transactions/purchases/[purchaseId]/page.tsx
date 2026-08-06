@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/shared/components/ui/button";
@@ -37,7 +37,9 @@ export default async function PurchaseDetailPage({
         </div>
         {purchaseRecord.purchaseStatus === "draft" && (
           <Button asChild size="sm" variant="outline">
-            <Link href={`/${storeSlug}/transactions/purchases/${purchaseRecord.id}/edit`}>
+            <Link
+              href={`/${storeSlug}/transactions/purchases/${purchaseRecord.id}/edit`}
+            >
               Edit
             </Link>
           </Button>

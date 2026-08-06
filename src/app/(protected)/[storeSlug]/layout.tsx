@@ -1,10 +1,10 @@
-import { notFound, redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 
 import { getShopBySlug } from "@/features/app/stores/server/queries";
 import { isMemberOfAccount } from "@/features/app/stores/server/membership";
 import { AdminHead } from "@/features/admin/shared/client/admin-head";
 import { AdminNavigationTabs } from "@/features/admin/shared/client/admin-nav";
+import { notFound, redirect } from "next/navigation";
 
 // Gates every /[storeSlug]/* dashboard route. This checks *membership* of
 // the specific store named in the URL (any role — page/action-level code

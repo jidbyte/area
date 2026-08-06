@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/shared/components/ui/button";
@@ -35,10 +35,16 @@ export default async function PurchasesPage({
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Purchases</h1>
         <Button asChild size="sm">
-          <Link href={`/${storeSlug}/transactions/purchases/new`}>New purchase order</Link>
+          <Link href={`/${storeSlug}/transactions/purchases/new`}>
+            New purchase order
+          </Link>
         </Button>
       </div>
-      <PurchasesTable currency={shop.currency} purchases={rows} shopSlug={storeSlug} />
+      <PurchasesTable
+        currency={shop.currency}
+        purchases={rows}
+        shopSlug={storeSlug}
+      />
     </div>
   );
 }

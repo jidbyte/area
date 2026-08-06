@@ -1,10 +1,4 @@
-import {
-  AlertTriangle,
-  ArrowRight,
-  Package,
-  PackageX,
-  Trophy,
-} from "lucide-react";
+import { AlertTriangle, Package } from "lucide-react";
 import {
   Card,
   CardHeader,

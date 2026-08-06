@@ -1,10 +1,13 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Button } from "@/shared/components/ui/button";
 import { getShopBySlug } from "@/features/app/stores/server/queries";
 import { listSalesByShop } from "@/features/admin/sales/server/queries";
-import { SalesTable, type SaleRow } from "@/features/admin/sales/client/sales-table";
+import {
+  SalesTable,
+  type SaleRow,
+} from "@/features/admin/sales/client/sales-table";
 
 export default async function SalesPage({
   params,

@@ -40,7 +40,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { placeholderAssets } from "@/assets/placeholder";
 import { formatPrice } from "@/shared/utils/currency";
 import { cn } from "@/shared/lib/utils";

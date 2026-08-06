@@ -68,7 +68,8 @@ export function CustomersTable({
             <Button
               size="sm"
               variant="outline"
-              disabled={isPending && pendingId === row.original.id} loading={isPending && pendingId === row.original.id}
+              disabled={isPending && pendingId === row.original.id}
+              loading={isPending && pendingId === row.original.id}
               onClick={() => {
                 setPendingId(row.original.id);
                 startTransition(async () => {
@@ -82,7 +83,7 @@ export function CustomersTable({
         ),
       },
     ],
-    [isPending, pendingId, shopSlug],
+    [isPending, pendingId, shopSlug, startTransition],
   );
 
   const table = useReactTable({
