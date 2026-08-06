@@ -39,3 +39,25 @@ export async function createPresignedUploadUrl(
 export function publicUrlForKey(key: string): string {
   return `${requiredEnv("R2_PUBLIC_URL")}/${key}`;
 }
+
+/**
+ * Direct server-side upload — for content generated on the server itself
+ * (e.g. invoice PDFs) rather than a browser file the presigned-URL flow
+ * above is for. Returns the public URL for convenience.
+ */
+export async function uploadBufferToR2(
+  key: string,
+  body: Buffer | Uint8Array,
+  contentType: string,
+): Promise<string> {
+  const client = getR2Client();
+  await client.send(
+    new PutObjectCommand({
+      Bucket: requiredEnv("R2_BUCKET_NAME"),
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+    }),
+  );
+  return publicUrlForKey(key);
+}

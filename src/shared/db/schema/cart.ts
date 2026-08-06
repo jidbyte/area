@@ -20,7 +20,7 @@ export const cart = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    shopId: text("shop_id")
+    shopId: text("organization_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
     buyerClerkUserId: text("buyer_clerk_user_id"),
@@ -28,9 +28,9 @@ export const cart = pgTable(
     ...timestamps,
   },
   (table) => [
-    index("cart_shopId_idx").on(table.shopId),
-    unique("cart_shop_buyer_unique").on(table.shopId, table.buyerClerkUserId),
-    unique("cart_shop_guest_unique").on(table.shopId, table.guestId),
+    index("cart_organizationId_idx").on(table.shopId),
+    unique("cart_organization_buyer_unique").on(table.shopId, table.buyerClerkUserId),
+    unique("cart_organization_guest_unique").on(table.shopId, table.guestId),
   ],
 );
 

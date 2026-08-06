@@ -29,7 +29,7 @@ export const review = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    shopId: text("shop_id")
+    shopId: text("organization_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
     productId: text("product_id")
@@ -47,7 +47,7 @@ export const review = pgTable(
     ...timestamps,
   },
   (table) => [
-    index("review_shopId_idx").on(table.shopId),
+    index("review_organizationId_idx").on(table.shopId),
     index("review_productId_idx").on(table.productId),
     unique("review_product_buyer_unique").on(
       table.productId,

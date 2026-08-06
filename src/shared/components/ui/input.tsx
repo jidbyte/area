@@ -14,7 +14,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="relative w-full">
         {hasIcon && (
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">
-            <Icon className={cn("mt-0.5 size-4 text-ink/80", iconClassName)} />
+            <Icon className={cn("mt-0.5 size-4 text-neutral", iconClassName)} />
           </div>
         )}
 
@@ -23,7 +23,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           type={type}
           data-slot="input"
           className={cn(
-            "flex h-9 w-full rounded-md border border-ink/60 bg-muted/50 py-2 px-4 text-sm tracking-wide text-ink transition-all outline-none",
+            "flex h-9 w-full rounded-md border border-neutral bg-muted/50 py-2 px-4 text-sm tracking-wide text-ink transition-all outline-none",
             "focus-visible:border-transparent focus-visible:ring-2 focus-visible:ring-info focus-visible:outline-none",
             "disabled:cursor-not-allowed disabled:opacity-60 placeholder:text-neutral",
             "aria-invalid:border-transparent aria-invalid:ring-1 aria-invalid:ring-danger",

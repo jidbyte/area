@@ -22,4 +22,11 @@ export const WHATSAPP_TEMPLATE_NEW_ORDER_SHOP_OWNER = "new_order_shop_owner";
 //    View it in your AREA dashboard."
 // Params sent, in order: saleNumber, buyerName, currency, total, buyerPhone
 
+export const WHATSAPP_TEMPLATE_INVOICE_READY = "invoice_ready";
+// Body to submit for approval:
+//   "Hi {{1}}, your invoice {{2}} from {{3}} for {{4}} {{5}} is ready.
+//    View/download it here: {{6}}"
+// Params sent, in order: customerName, invoiceNumber, shopName, currency,
+// total, pdfUrl
+
 export const WHATSAPP_LANGUAGE_CODE = "en_US";

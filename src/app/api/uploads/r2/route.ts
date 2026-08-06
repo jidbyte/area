@@ -3,8 +3,8 @@ import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
 
 import { createPresignedUploadUrl, publicUrlForKey } from "@/shared/lib/r2";
-import { getShopBySlug } from "@/features/shops/server/queries";
-import { isMemberOfShopOrg } from "@/features/shops/server/membership";
+import { getShopBySlug } from "@/features/app/stores/server/queries";
+import { isMemberOfAccount } from "@/features/app/stores/server/membership";
 
 const bodySchema = z.object({
   shopSlug: z.string().min(1),
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Shop not found" }, { status: 404 });
   }
 
-  const isMember = await isMemberOfShopOrg(userId, shop.clerkOrgId);
+  const isMember = await isMemberOfAccount(userId, shop.id);
   if (!isMember) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }

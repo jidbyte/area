@@ -18,7 +18,7 @@ export const purchase = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    shopId: text("shop_id")
+    shopId: text("organization_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
     purchaseNumber: text("purchase_number").notNull(),
@@ -45,12 +45,12 @@ export const purchase = pgTable(
     ...timestamps,
   },
   (table) => [
-    index("purchase_shopId_idx").on(table.shopId),
+    index("purchase_organizationId_idx").on(table.shopId),
     index("purchase_supplierId_idx").on(table.supplierId),
     index("purchase_purchaseDate_idx").on(table.purchaseDate),
     index("purchase_paymentStatus_idx").on(table.paymentStatus),
     index("purchase_purchaseStatus_idx").on(table.purchaseStatus),
-    unique("purchase_shopId_purchaseNumber_unique").on(
+    unique("purchase_organizationId_purchaseNumber_unique").on(
       table.shopId,
       table.purchaseNumber,
     ),

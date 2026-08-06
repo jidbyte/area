@@ -19,7 +19,7 @@ export const product = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    shopId: text("shop_id")
+    shopId: text("organization_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
@@ -29,16 +29,15 @@ export const product = pgTable(
     model: text("model"),
     description: text("description"),
     quantity: integer("quantity").notNull().default(0),
-    restockLevel: integer("restock_level").notNull().default(0),
-    optimalLevel: integer("optimal_level").notNull().default(0),
-    cost: integer("cost").notNull().default(0),
-    price: integer("price").notNull().default(0),
+    restockLevel: integer("restock_level").notNull().default(10),
+    costPrice: integer("cost_price").notNull().default(0),
+    sellingPrice: integer("selling_price").notNull().default(0),
     isActive: boolean("is_active").notNull().default(true),
     deletedAt: timestamp("deleted_at"),
     ...timestamps,
   },
   (table) => [
-    index("product_shopId_idx").on(table.shopId),
+    index("product_organizationId_idx").on(table.shopId),
     index("product_name_idx").on(table.name),
     index("product_sku_idx").on(table.sku),
     index("product_isActive_idx").on(table.isActive),
@@ -51,14 +50,14 @@ export const category = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    shopId: text("shop_id")
+    shopId: text("organization_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     ...timestamps,
   },
   (table) => [
-    index("category_shopId_idx").on(table.shopId),
+    index("category_organizationId_idx").on(table.shopId),
     index("category_name_idx").on(table.name),
   ],
 );

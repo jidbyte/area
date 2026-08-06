@@ -56,7 +56,7 @@ export const dummyShops = [
 
 type ProductSeed = [
   name: string,
-  price: number,
+  sellingPrice: number,
   compareAtPrice: number,
   image: (typeof demoImages)[keyof typeof demoImages],
   category: string,
@@ -78,7 +78,7 @@ const productSeeds: ProductSeed[] = [
 ];
 
 export const dummyProducts = productSeeds.map(
-  ([name, price, compareAtPrice, image, category], i) => {
+  ([name, sellingPrice, compareAtPrice, image, category], i) => {
     const quantity = 8 + i * 3; // varied stock levels for a believable inventory view
     return {
       id: `prod_${i + 1}`,
@@ -90,12 +90,11 @@ export const dummyProducts = productSeeds.map(
       description:
         `${name} with a sleek design — perfect for any room, made of high-quality materials, ` +
         `and backed by a lifetime warranty.`,
-      price, // matches product.price in the real schema
+      sellingPrice, // matches product.sellingPrice in the real schema
       compareAtPrice, // display-only ("was" price) — not a schema column
-      cost: Math.round(price * 0.6),
+      costPrice: Math.round(sellingPrice * 0.6),
       quantity,
       restockLevel: Math.max(3, Math.round(quantity * 0.2)),
-      optimalLevel: Math.round(quantity * 1.5),
       isActive: true,
       images: [{ url: image, isPrimary: true }],
       categories: [category],

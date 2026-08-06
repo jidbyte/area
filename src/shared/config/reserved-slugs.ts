@@ -1,8 +1,10 @@
-// Slugs a shop is NOT allowed to register, because they'd collide with a
-// platform-level route (e.g. a shop named "admin" would shadow /admin).
+// Slugs a store is NOT allowed to register, because they'd collide with a
+// platform-level route (e.g. a store named "stores" would shadow /stores).
 export const RESERVED_SLUGS = [
   "admin",
   "setup",
+  "onboarding",
+  "invite",
   "api",
   "auth",
   "cart",
@@ -11,13 +13,25 @@ export const RESERVED_SLUGS = [
   "sign-up",
   "sign-out",
   "about",
+  "contact",
   "pricing",
   "blog",
   "help",
   "terms",
   "privacy",
+  "shop",
   "shops",
+  "stores",
   "order",
+  "dashboard",
+  "products",
+  "sales",
+  "purchases",
+  "customers",
+  "suppliers",
+  "reviews",
+  "analytics",
+  "settings",
   "_next",
   "static",
   "favicon.ico",

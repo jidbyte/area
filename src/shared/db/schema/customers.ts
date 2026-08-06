@@ -10,7 +10,7 @@ export const customer = pgTable(
     id: text("id")
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    shopId: text("shop_id")
+    shopId: text("organization_id")
       .notNull()
       .references(() => shop.id, { onDelete: "cascade" }),
     buyerClerkUserId: text("buyer_clerk_user_id"),
@@ -25,7 +25,7 @@ export const customer = pgTable(
     ...timestamps,
   },
   (table) => [
-    index("customer_shopId_idx").on(table.shopId),
+    index("customer_organizationId_idx").on(table.shopId),
     index("customer_name_idx").on(table.name),
     index("customer_email_idx").on(table.email),
     index("customer_buyerClerkUserId_idx").on(table.buyerClerkUserId),

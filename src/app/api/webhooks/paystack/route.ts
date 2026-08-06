@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { verifyWebhookSignature } from "@/shared/lib/paystack";
-import { completeSaleFromPaystackReference } from "@/features/checkout/server/actions";
+import { completeSaleFromPaystackReference } from "@/features/app/payments/server/checkout-actions";
 
 export async function POST(req: NextRequest) {
   // Must read as raw text FIRST — the signature is computed over the exact

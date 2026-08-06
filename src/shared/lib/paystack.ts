@@ -106,6 +106,8 @@ export type PaystackCheckoutMetadata = {
     quantity: number;
     unitPrice: number;
   }>;
+  couponId: string | null;
+  discountAmount: number;
 };
 
 export type PaystackInitializeResult = {
